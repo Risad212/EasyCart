@@ -7,6 +7,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use App\Routes;
 use App\Controller\PaymentController;
+use App\Controller\InputController;
 
 require_once 'helper.php';
 require_once 'config.php';
@@ -15,8 +16,18 @@ Routes::get('/', function () {
     return view('app', []);
 });
 
-Routes::post('/create-session', function () {
-    PaymentController::createSession();
+Routes::get('/checkout', function () {
+    return view('checkout', []);
+});
+
+
+Routes::post('/checkout', function () {
+
+    $validInput = InputController::inputValidate($_POST);
+
+    var_dump($validInput);
+
+    // PaymentController::createSession();
 });
 
 $routes = Routes::getInstance();

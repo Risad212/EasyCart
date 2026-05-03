@@ -9,23 +9,15 @@
 
 <body>
 
-    <header>
-        <h2>App</h2>
-    </header>
-
     <main>
-        <button class="stripe-btn" id="payBtn">
-            Pay with Stripe 💳
-        </button>
+
+        <h2>Checkout Page</h2>
+
+        <a href="<?= BASE_URL ?>checkout" class="checkout-btn">
+            Checkout
+        </a>
     </main>
 
-    <script src="https://js.stripe.com/v3/"></script>
-
-    <script>
-        window.STRIPE_KEY = "<?= $_ENV['STRIPE_PUBLIC'] ?>";
-        window.BASE_URL = "<?= BASE_URL ?>";
-    </script>
-    <script src="<?= BASE_URL ?>assets/js/main.js"></script>
 </body>
 
 </html>
