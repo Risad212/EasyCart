@@ -2,6 +2,9 @@
 
 namespace App\Controller;
 
+use Stripe\Checkout\Session;
+
+
 class PaymentController
 {
     public static function createSession()
@@ -10,7 +13,7 @@ class PaymentController
 
         try {
 
-            $session = \Stripe\Checkout\Session::create([
+            $session = Session::create([
                 'payment_method_types' => ['card'],
                 'line_items' => [[
                     'price_data' => [

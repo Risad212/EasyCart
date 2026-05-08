@@ -4,13 +4,16 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 require_once __DIR__ . '/vendor/autoload.php';
+require_once 'helper.php';
+require_once 'config.php';
 
 use App\Routes;
 use App\Controller\PaymentController;
 use App\Controller\InputController;
 
-require_once 'helper.php';
-require_once 'config.php';
+define('BASE_PATH', __DIR__);
+define('BASE_URL', baseUrl());
+
 
 Routes::get('/', function () {
     return view('app', []);
@@ -25,9 +28,7 @@ Routes::post('/checkout', function () {
 
     $validInput = InputController::inputValidate($_POST);
 
-    var_dump($validInput);
-
-    // PaymentController::createSession();
+    PaymentController::createSession();
 });
 
 $routes = Routes::getInstance();

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Checkout - SwiftCart</title>
-    <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
 </head>
 
 <body>
@@ -15,7 +15,7 @@
 
     <main class="checkout-container">
 
-        <form class="checkout-form" method="POST" action="<?= BASE_URL ?>checkout">
+        <form class="checkout-form" method="POST" action="<?= BASE_URL ?>/checkout">
 
             <h3>Billing Details</h3>
 
@@ -49,6 +49,12 @@
 
     </main>
 
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        window.STRIPE_KEY = "<?= $_ENV['PUBLISH_KEY'] ?>";
+        window.BASE_URL   = "<?= BASE_URL ?>";
+    </script>
+    <script src="<?= BASE_URL ?>/assets/js/main.js"></script>
 </body>
 
 </html>
