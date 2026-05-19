@@ -1,4 +1,4 @@
 # SwiftCart PHP
 
-**SwiftCart PHP** is a PHP project focused on Stripe payment integration with a custom checkout system.
+Implement Stripe payment gateway in the checkout flow
 
