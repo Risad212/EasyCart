@@ -8,20 +8,21 @@ class InputController
     {
         $errors = [];
 
-        $name    = trim($inputs['name'] ?? '');
-        $email   = trim($inputs['email'] ?? '');
-        $address = trim($inputs['address'] ?? '');
+        // ✅ SANITIZE FIRST
+        $name        = htmlspecialchars(trim($inputs['name'] ?? ''));
+        $email       = filter_var(trim($inputs['email'] ?? ''), FILTER_SANITIZE_EMAIL);
+        $address     = htmlspecialchars(trim($inputs['address'] ?? ''));
+        $city        = htmlspecialchars(trim($inputs['city'] ?? ''));
+        $postal_code = htmlspecialchars(trim($inputs['postal_code'] ?? ''));
 
-        // validation
+        // ✅ VALIDATE
         if ($name === '') {
             $errors['name'] = "Name is required";
         }
 
         if ($email === '') {
             $errors['email'] = "Email is required";
-        }
-
-        if ($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors['email'] = "Invalid email format";
         }
 
@@ -29,19 +30,29 @@ class InputController
             $errors['address'] = "Address is required";
         }
 
-        // ❌ if errors return them
+        if ($city === '') {
+            $errors['city'] = "City is required";
+        }
+
+        if ($postal_code === '') {
+            $errors['postal_code'] = "Postal Code is required";
+        }
+
+        // ❌ Return errors if any
         if (!empty($errors)) {
             return [
                 "errors" => $errors
             ];
         }
 
-        // ✅ return CLEAN data
+        // ✅ Return clean sanitized data
         return [
             "data" => [
-                "name" => $name,
-                "email" => $email,
-                "address" => $address
+                "name"        => $name,
+                "email"       => $email,
+                "address"     => $address,
+                "city"        => $city,
+                "postal_code" => $postal_code
             ]
         ];
     }
