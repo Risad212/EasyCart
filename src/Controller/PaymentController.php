@@ -98,8 +98,7 @@ class PaymentController
         $sessionId = $_GET['session_id'] ?? null;
 
         if ( !$sessionId ) {
-            header('Location: ' . BASE_URL . '/home');
-            exit;
+            redirect('home');
         }
 
         try {
@@ -117,23 +116,19 @@ class PaymentController
             $cartTotal = round($cartTotal * 100);
 
             if ($session->amount_total !== $cartTotal) {
-                header('Location: ' . BASE_URL . '/failure?reason=Amount mismatch');
-                exit;
+                redirect('failure?reason=Amount mismatch');
             }
 
             if ($session->payment_status !== 'paid') {
-                header('Location: ' . BASE_URL . '/failure?reason=Payment not completed');
-                exit;
+                redirect('failure?reason=Payment not completed');
             }
 
             if (empty($session->payment_intent)) {
-                header('Location: ' . BASE_URL . '/failure?reason=Invalid transaction');
-                exit;
+                redirect('failure?reason=Invalid transaction');
             }
 
             if ($session->amount_total <= 0) {
-                header('Location: ' . BASE_URL . '/failure?reason=Invalid amount');
-                exit;
+                redirect('failure?reason=Invalid amount');
             }
 
             $customerName   = $session->customer_details->name ?? 'Guest';
@@ -151,8 +146,7 @@ class PaymentController
             ]);
 
         } catch (Throwable $e) {
-            header('Location: ' . BASE_URL . '/failure?reason=' . urlencode($e->getMessage()));
-            exit;
+            redirect('failure?reason=' . urlencode($e->getMessage()));
         }
     }
 
@@ -181,34 +175,27 @@ class PaymentController
     public static function verifyTransaction(?string $sessionId): void
     {
         if (!$sessionId) {
-            header('Location: ' . BASE_URL . '/failure?reason=No session');
-            exit;
+            redirect('failure?reason=' . urlencode($e->getMessage()));
         }
-
         try {
             $session = Session::retrieve($sessionId);
 
             if ($session->payment_status !== 'paid') {
-                header('Location: ' . BASE_URL . '/failure?reason=Payment not verified');
-                exit;
+                redirect('failure?reason=Payment not verified');
             }
 
             if (empty($session->payment_intent)) {
-                header('Location: ' . BASE_URL . '/failure?reason=Invalid transaction');
-                exit;
+                redirect('failure?reason=Invalid transaction');
             }
 
             if ($session->amount_total <= 0) {
-                header('Location: ' . BASE_URL . '/failure?reason=Invalid amount');
-                exit;
+                redirect('failure?reason=Invalid amount');
             }
 
-            header('Location: ' . BASE_URL . '/order-confirmation?session_id=' . $sessionId);
-            exit;
+            redirect('order-confirmation?session_id=' . $sessionId);
 
         } catch (Throwable $e) {
-            header('Location: ' . BASE_URL . '/failure?reason=' . urlencode($e->getMessage()));
-            exit;
+            redirect('failure?reason=' . urlencode($e->getMessage()));
         }
     }
 
@@ -246,8 +233,7 @@ class PaymentController
             ]);
 
         } catch (Throwable $e) {
-            header('Location: ' . BASE_URL . '/failure?reason=' . urlencode($e->getMessage()));
-            exit;
+            redirect('failure?reason='. urlencode($e->getMessage()));
         }
     }
 }
