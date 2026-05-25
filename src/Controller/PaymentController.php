@@ -7,8 +7,14 @@ use Throwable;
 
 class PaymentController
 {
-  public static function createSession($validInput)
-   {
+    /**
+     * Create Stripe Checkout Session
+     * 
+     * @param array $validInput
+     * @return void
+     */
+    public static function createSession(array $validInput): void
+    {
         session_start();
         header('Content-Type: application/json');
         try {
@@ -50,16 +56,17 @@ class PaymentController
                 exit;
             }
 
-            $customer_email = $metaData['email'] ?? '';
+            $customerEmail = $metaData['email'] ?? '';
 
             $session = Session::create([
                 'payment_method_types' => ['card'],
-                'line_items' => $lineItems,
-                'mode' => 'payment',
-                'customer_email' => $customer_email,
-                'metadata' => [
-                    'name' => $metaData['name'] ?? '',
-                    'email' => $metaData['email'] ?? '',
+                'line_items'           => $lineItems,
+                'mode'                 => 'payment',
+                'customer_email'       => $customerEmail,
+
+                'metadata'    => [
+                    'name'    => $metaData['name'] ?? '',
+                    'email'   => $metaData['email'] ?? '',
                     'address' => trim(
                         ($metaData['address'] ?? '') . ', ' .
                         ($metaData['city'] ?? '') . ' ' .
@@ -81,19 +88,23 @@ class PaymentController
         }
     }
 
-    public static function success()
+    /**
+     * Handle Payment Success Callback
+     * 
+     * @return mixed
+     */
+    public static function success(): mixed
     {
-        $session_id = $_GET['session_id'] ?? null;
+        $sessionId = $_GET['session_id'] ?? null;
 
-        if (!$session_id) {
+        if ( !$sessionId ) {
             header('Location: ' . BASE_URL . '/home');
             exit;
         }
 
         try {
-            $session = Session::retrieve($session_id);
+            $session   = Session::retrieve( $sessionId );
 
-            // ✅ CHECK 1 — verify amount matches cart total
             $checkout  = $_SESSION['checkout'] ?? [];
             $products  = $checkout['products'] ?? [];
             $shipping  = $checkout['shipping_cost'] ?? 0;
@@ -110,35 +121,32 @@ class PaymentController
                 exit;
             }
 
-            // ✅ CHECK 2 — payment actually paid
             if ($session->payment_status !== 'paid') {
                 header('Location: ' . BASE_URL . '/failure?reason=Payment not completed');
                 exit;
             }
 
-            // ✅ CHECK 3 — transaction ID exists
             if (empty($session->payment_intent)) {
                 header('Location: ' . BASE_URL . '/failure?reason=Invalid transaction');
                 exit;
             }
 
-            // ✅ CHECK 4 — amount is valid
             if ($session->amount_total <= 0) {
                 header('Location: ' . BASE_URL . '/failure?reason=Invalid amount');
                 exit;
             }
 
-            $customer_name  = $session->customer_details->name ?? 'Guest';
-            $customer_email = $session->customer_details->email ?? '';
+            $customerName   = $session->customer_details->name ?? 'Guest';
+            $customerEmail  = $session->customer_details->email ?? '';
             $amount         = number_format($session->amount_total / 100, 2);
-            $transaction_id = $session->payment_intent ?? '';
+            $transactionId  = $session->payment_intent ?? '';
             $date           = date('M j, Y');
 
             return view('success', [
-                'customer_name'  => $customer_name,
-                'customer_email' => $customer_email,
+                'customer_name'  => $customerName,
+                'customer_email' => $customerEmail,
                 'amount'         => $amount,
-                'transaction_id' => $transaction_id,
+                'transaction_id' => $transactionId,
                 'date'           => $date,
             ]);
 
@@ -148,27 +156,37 @@ class PaymentController
         }
     }
 
-    public static function failure()
+    /**
+     * Handle Payment Failure Callback
+     * 
+     * @return mixed
+     */
+    public static function failure(): mixed
     {
-        $customer_name = 'Guest';
+        $customerName = 'Guest';
         $reason = $_GET['reason'] ?? 'Your payment could not be completed.';
 
         return view('failure', [
-            'customer_name' => $customer_name,
-            'reason' => $reason,
+            'customer_name' => $customerName,
+            'reason'        => $reason,
         ]);
     }
 
-    public static function verifyTransaction($session_id)
+    /**
+     * Verify Payment Transaction 
+     * 
+     * @param string|null $sessionId
+     * @return void
+     */
+    public static function verifyTransaction(?string $sessionId): void
     {
-        // ✅ handle null session_id
-        if (!$session_id) {
+        if (!$sessionId) {
             header('Location: ' . BASE_URL . '/failure?reason=No session');
             exit;
         }
 
         try {
-            $session = Session::retrieve($session_id);
+            $session = Session::retrieve($sessionId);
 
             if ($session->payment_status !== 'paid') {
                 header('Location: ' . BASE_URL . '/failure?reason=Payment not verified');
@@ -185,7 +203,7 @@ class PaymentController
                 exit;
             }
 
-            header('Location: ' . BASE_URL . '/order-confirmation?session_id=' . $session_id);
+            header('Location: ' . BASE_URL . '/order-confirmation?session_id=' . $sessionId);
             exit;
 
         } catch (Throwable $e) {
@@ -193,27 +211,37 @@ class PaymentController
             exit;
         }
     }
-    public static function orderConfirmation($session_id)
+
+    /**
+     * Confirmation Payment Order
+     * 
+     * @param string|null $sessionId
+     * @return mixed
+     */
+    public static function orderConfirmation(?string $sessionId): mixed
     {
-        if (!$session_id) {
+        if (!$sessionId) {
             header('Location: ' . BASE_URL . '/home');
             exit;
         }
 
         try {
-            $session = Session::retrieve($session_id);
+            $session             = Session::retrieve($sessionId);
 
-            $customer_name  = $session->customer_details->name ?? 'Guest';
-            $customer_email = $session->customer_details->email ?? '';
-            $amount         = number_format($session->amount_total / 100, 2);
-            $transaction_id = $session->payment_intent ?? '';
-            $date           = date('M j, Y');
+            $customerName        = $session->customer_details->name ?? 'Guest';
+            $customerEmail       = $session->customer_details->email ?? '';
+            $amount              = number_format($session->amount_total / 100, 2);
+            $transactionId       = $session->payment_intent ?? '';
+            $date                = date('M j, Y');
+
+           // Destroy session after order is confirmed
+            session_destroy();
 
             return view('success', [
-                'customer_name'  => $customer_name,
-                'customer_email' => $customer_email,
+                'customer_name'  => $customerName,
+                'customer_email' => $customerEmail,
                 'amount'         => $amount,
-                'transaction_id' => $transaction_id,
+                'transaction_id' => $transactionId,
                 'date'           => $date,
             ]);
 
