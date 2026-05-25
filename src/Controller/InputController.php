@@ -4,18 +4,22 @@ namespace App\Controller;
 
 class InputController
 {
-    public static function inputValidate($inputs)
+    /**
+     * Validate and Sanitize User Input Data.
+     * 
+     * @param array $inputs User input data
+     * @return array
+     */
+    public static function inputValidate(array $inputs): array
     {
-        $errors = [];
-
-        // ✅ SANITIZE FIRST
+        $errors      = [];
+        
         $name        = htmlspecialchars(trim($inputs['name'] ?? ''));
         $email       = filter_var(trim($inputs['email'] ?? ''), FILTER_SANITIZE_EMAIL);
         $address     = htmlspecialchars(trim($inputs['address'] ?? ''));
         $city        = htmlspecialchars(trim($inputs['city'] ?? ''));
-        $postal_code = htmlspecialchars(trim($inputs['postal_code'] ?? ''));
+        $postalCode  = htmlspecialchars(trim($inputs['postal_code'] ?? ''));
 
-        // ✅ VALIDATE
         if ($name === '') {
             $errors['name'] = "Name is required";
         }
@@ -34,25 +38,23 @@ class InputController
             $errors['city'] = "City is required";
         }
 
-        if ($postal_code === '') {
+        if ($postalCode === '') {
             $errors['postal_code'] = "Postal Code is required";
         }
 
-        // ❌ Return errors if any
         if (!empty($errors)) {
             return [
                 "errors" => $errors
             ];
         }
 
-        // ✅ Return clean sanitized data
         return [
             "data" => [
                 "name"        => $name,
                 "email"       => $email,
                 "address"     => $address,
                 "city"        => $city,
-                "postal_code" => $postal_code
+                "postal_code" => $postalCode
             ]
         ];
     }
