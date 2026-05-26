@@ -19,11 +19,23 @@ class PaymentController
         header('Content-Type: application/json');
         try {
 
-            $checkout     = $_SESSION['checkout'] ?? [];
-            $products     = $checkout['products'] ?? [];
-            $shippingCost = $checkout['shipping_cost'] ?? 0;
-            $metaData     = $validInput['data'] ?? [];
-            $lineItems    = [];
+            $checkout      = $_SESSION['checkout'] ?? [];
+            $products      = $checkout['products'] ?? [];
+            $shippingCost  = $checkout['shipping_cost'] ?? 0;
+            $metaData      = $validInput['data'] ?? [];
+            $paymentType   = $metaData['payment_type'] ?? 'one-time';
+            $mode          = $paymentType === 'recurring' ? 'subscription' : 'payment';
+            $lineItems     = [];
+            $stripePriceId = $_ENV['STRIPE_PRICE_ID'];
+
+            if ($mode === 'subscription' && $stripePriceId) {
+                $lineItems = [
+                    [
+                        'price'    => $stripePriceId,
+                        'quantity' => 1,
+                    ]
+                ];
+            } 
 
             foreach ($products as $product) {
                 $lineItems[] = [
@@ -61,13 +73,14 @@ class PaymentController
             $session = Session::create([
                 'payment_method_types' => ['card'],
                 'line_items'           => $lineItems,
-                'mode'                 => 'payment',
+                'mode'                 => $mode,
                 'customer_email'       => $customerEmail,
 
-                'metadata'    => [
-                    'name'    => $metaData['name'] ?? '',
-                    'email'   => $metaData['email'] ?? '',
-                    'address' => trim(
+                'metadata'             => [
+                    'name'             => $metaData['name'] ?? '',
+                    'email'            => $metaData['email'] ?? '',
+                    'payment_type'     => $paymentType,
+                    'address'          => trim(
                         ($metaData['address'] ?? '') . ', ' .
                         ($metaData['city'] ?? '') . ' ' .
                         ($metaData['postal_code'] ?? '')
@@ -78,7 +91,6 @@ class PaymentController
                 'cancel_url'  => BASE_URL . '/failure',
             ]);
 
-            // ✅ RETURN SESSION ID
             echo json_encode(['id' => $session->id]);
             exit;
 
@@ -93,20 +105,21 @@ class PaymentController
      * 
      * @return mixed
      */
-    public static function success(): mixed
-    {
+     public static function success(): mixed
+     {
         $sessionId = $_GET['session_id'] ?? null;
 
-        if ( !$sessionId ) {
+        if (!$sessionId) {
             redirect('home');
         }
 
         try {
-            $session   = Session::retrieve( $sessionId );
+            $session     = Session::retrieve($sessionId);
 
-            $checkout  = $_SESSION['checkout'] ?? [];
-            $products  = $checkout['products'] ?? [];
-            $shipping  = $checkout['shipping_cost'] ?? 0;
+            $checkout    = $_SESSION['checkout'] ?? [];
+            $products    = $checkout['products'] ?? [];
+            $shipping    = $checkout['shipping_cost'] ?? 0;
+            $paymentType = $session->metadata->payment_type ?? 'one-time';
 
             $cartTotal = 0;
             foreach ($products as $product) {
@@ -115,27 +128,32 @@ class PaymentController
             $cartTotal += $shipping;
             $cartTotal = round($cartTotal * 100);
 
-            if ($session->amount_total !== $cartTotal) {
-                redirect('failure?reason=Amount mismatch');
+            // ✅ skip amount check for subscription
+            if ($paymentType !== 'recurring') {
+                if ($session->amount_total !== $cartTotal) {
+                    redirect('failure?reason=Amount mismatch');
+                }
             }
 
             if ($session->payment_status !== 'paid') {
                 redirect('failure?reason=Payment not completed');
             }
 
-            if (empty($session->payment_intent)) {
+            // ✅ subscription uses subscription ID not payment_intent
+            $transactionId = $session->payment_intent ?? $session->subscription ?? '';
+            if (empty($transactionId)) {
                 redirect('failure?reason=Invalid transaction');
             }
 
-            if ($session->amount_total <= 0) {
+            // ✅ skip amount check for subscription
+            if ($paymentType !== 'recurring' && $session->amount_total <= 0) {
                 redirect('failure?reason=Invalid amount');
             }
 
-            $customerName   = $session->customer_details->name ?? 'Guest';
-            $customerEmail  = $session->customer_details->email ?? '';
-            $amount         = number_format($session->amount_total / 100, 2);
-            $transactionId  = $session->payment_intent ?? '';
-            $date           = date('M j, Y');
+            $customerName  = $session->customer_details->name ?? 'Guest';
+            $customerEmail = $session->customer_details->email ?? '';
+            $amount        = number_format(($session->amount_total ?? 0) / 100, 2);
+            $date          = date('M j, Y');
 
             return view('success', [
                 'customer_name'  => $customerName,
@@ -147,8 +165,8 @@ class PaymentController
 
         } catch (Throwable $e) {
             redirect('failure?reason=' . urlencode($e->getMessage()));
-        }
-    }
+      }
+     }
 
     /**
      * Handle Payment Failure Callback
@@ -175,20 +193,32 @@ class PaymentController
     public static function verifyTransaction(?string $sessionId): void
     {
         if (!$sessionId) {
-            redirect('failure?reason=' . urlencode($e->getMessage()));
+            redirect('failure?reason=No session');
         }
-        try {
-            $session = Session::retrieve($sessionId);
 
-            if ($session->payment_status !== 'paid') {
-                redirect('failure?reason=Payment not verified');
+        try {
+            $session     = Session::retrieve($sessionId);
+            $paymentType = $session->metadata->payment_type ?? 'one-time';
+
+            // ✅ check payment status differently for subscription
+            if ($paymentType === 'recurring') {
+                if ($session->status !== 'complete') {
+                    redirect('failure?reason=Payment not verified');
+                }
+            } else {
+                if ($session->payment_status !== 'paid') {
+                    redirect('failure?reason=Payment not verified');
+                }
             }
 
-            if (empty($session->payment_intent)) {
+            // ✅ check both payment_intent and subscription ID
+            $transactionId = $session->payment_intent ?? $session->subscription ?? '';
+            if (empty($transactionId)) {
                 redirect('failure?reason=Invalid transaction');
             }
 
-            if ($session->amount_total <= 0) {
+            // ✅ skip amount check for subscription
+            if ($paymentType !== 'recurring' && $session->amount_total <= 0) {
                 redirect('failure?reason=Invalid amount');
             }
 
@@ -208,8 +238,7 @@ class PaymentController
     public static function orderConfirmation(?string $sessionId): mixed
     {
         if (!$sessionId) {
-            header('Location: ' . BASE_URL . '/home');
-            exit;
+            redirect('home');
         }
 
         try {
@@ -221,8 +250,10 @@ class PaymentController
             $transactionId       = $session->payment_intent ?? '';
             $date                = date('M j, Y');
 
-           // Destroy session after order is confirmed
-            session_destroy();
+            // destrory session
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_destroy();
+            }
 
             return view('success', [
                 'customer_name'  => $customerName,
