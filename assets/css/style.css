@@ -670,3 +670,30 @@ h2 {
     background-color: #EF4444;
     color: #fff;
 }
+
+.cancel-button {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background-color: transparent;
+    color: #EF4444;
+    border: 1.5px solid #EF4444;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 16px;
+    transition: all 0.3s ease;
+}
+
+.cancel-button:hover {
+    background-color: #EF4444;
+    color: #ffffff;
+}
+
+.cancel-button:active {
+    background-color: #DC2626;
+    border-color: #DC2626;
+    color: #ffffff;
+}
