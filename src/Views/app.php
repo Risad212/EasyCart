@@ -13,9 +13,18 @@
 
         <h2>Checkout Page</h2>
 
-        <a href="<?= BASE_URL ?>/checkout" class="checkout-btn">
-            Checkout
-        </a>
+        <div style="text-align: center; margin-top: 50px">
+             <a href="<?= BASE_URL ?>/checkout" class="checkout-btn">
+              Checkout
+           </a>
+        </div>
+
+        <div style="text-align: center; margin-top: 50px">
+            <form method="POST" action="<?= BASE_URL ?>/cancel-subscription">
+                <button type="submit">Cancel Subscription</button>
+            </form>
+        </div>
+
     </main>
 
 </body>
