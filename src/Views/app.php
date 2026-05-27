@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>SwiftCart</title>
+    <title>EasyCart</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
 </head>
 
@@ -19,14 +19,13 @@
            </a>
         </div>
 
-        <div style="text-align: center; margin-top: 50px">
-            <form method="POST" action="<?= BASE_URL ?>/cancel-subscription">
-                <button type="submit">Cancel Subscription</button>
+        <div style="text-align: center; margin-top: 30px;">
+            <form style="display: inline-block;" method="POST" action="<?= BASE_URL ?>/cancel-subscription">
+                <button class="cancel-button" type="submit">Cancel Subscription</button>
             </form>
         </div>
 
     </main>
 
-</body>
-
+</body> 
 </html>
