@@ -19,6 +19,7 @@ class InputController
         $address     = htmlspecialchars(trim($inputs['address'] ?? ''));
         $city        = htmlspecialchars(trim($inputs['city'] ?? ''));
         $postalCode  = htmlspecialchars(trim($inputs['postal_code'] ?? ''));
+        $paymentType = htmlspecialchars(trim($inputs['payment_type'] ?? 'one-time'));
 
         if ($name === '') {
             $errors['name'] = "Name is required";
@@ -42,6 +43,10 @@ class InputController
             $errors['postal_code'] = "Postal Code is required";
         }
 
+        if (!in_array($paymentType, ['one-time', 'recurring'])) {
+            $errors['payment_type'] = "Invalid payment type";
+        }
+
         if (!empty($errors)) {
             return [
                 "errors" => $errors
@@ -50,11 +55,12 @@ class InputController
 
         return [
             "data" => [
-                "name"        => $name,
-                "email"       => $email,
-                "address"     => $address,
-                "city"        => $city,
-                "postal_code" => $postalCode
+                "name"         => $name,
+                "email"        => $email,
+                "address"      => $address,
+                "city"         => $city,
+                "postal_code"  => $postalCode,
+                "payment_type" => $paymentType
             ]
         ];
     }
