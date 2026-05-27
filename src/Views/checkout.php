@@ -15,11 +15,11 @@ $total = $subtotal + $shippingCost;
 session_start();
 
 $_SESSION['checkout'] = [
-    'products' => $products,
+    'products'      => $products,
     'shipping_cost' => $shippingCost,
-    'address' => $address,
-    'subtotal' => $subtotal,
-    'total' => $total
+    'address'       => $address,
+    'subtotal'      => $subtotal,
+    'total'         => $total
 ];
 
 ?>
@@ -73,6 +73,14 @@ $_SESSION['checkout'] = [
             <input type="text" name="postal_code" value="<?= $address['post_code'] ?? '' ?>" required>
         </div>
 
+        <div class="form-group">
+          <label> Choose Payment Type</label>
+            <select name="payment" id="payment">
+                <option value="one-time">One Time Payment </option>
+                <option value="recurring">Subscription</option>
+           </select>
+        </div>
+
         <button type="submit" class="stripe-btn">
             Checkout 💳
         </button>
@@ -99,7 +107,7 @@ $_SESSION['checkout'] = [
 
         <p>Subtotal: <strong>$<?= number_format($subtotal, 2) ?></strong></p>
         <p>Shipping: <strong>$<?= number_format($shippingCost, 2) ?></strong></p>
-        <p>Total: <strong>$<?= number_format($total, 2) ?></strong></p>
+        <p>Total:    <strong>$<?= number_format($total, 2) ?></strong></p>
 
     </div>
 
