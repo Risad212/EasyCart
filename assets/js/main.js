@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 postal_code: document.querySelector(".checkout-form [name=postal_code]").value
             })
           })
-           const data = await res.json();
+           const data = await response.json();
            
            if(!data){
              throw new Error(data.error || "Session ID missing")
