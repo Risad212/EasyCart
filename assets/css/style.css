@@ -102,6 +102,27 @@ h2 {
     border-radius: 6px;
 }
 
+.form-group select {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #333;
+    background-color: #fff;
+    cursor: pointer;
+    appearance: none;
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.form-group select:focus {
+    border-color: #4F46E5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
 /* =========================
    ORDER BOX
 ========================= */
@@ -581,4 +602,71 @@ h2 {
 
 .product-item img {
     border-radius: 8px;
+}
+
+/*=====================
+  Cancle Subscritpon
+  ===================*/
+  /* Subscription Cancelled Page */
+.ty-icon--cancel {
+    background-color: #FEE2E2;
+}
+
+.ty-icon--cancel path {
+    stroke: #EF4444;
+    stroke-width: 2;
+    stroke-linecap: round;
+    fill: none;
+}
+
+.ty-icon--error {
+    background-color: #FEF3C7;
+}
+
+.ty-icon--error path {
+    stroke: #F59E0B;
+    stroke-width: 2;
+    stroke-linecap: round;
+    fill: none;
+}
+
+.ty-status-cancelled {
+    display: inline-block;
+    padding: 4px 12px;
+    background-color: #FEE2E2;
+    color: #EF4444;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.ty-status-active {
+    display: inline-block;
+    padding: 4px 12px;
+    background-color: #D1FAE5;
+    color: #10B981;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.ty-btn-cancel {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background-color: #FEE2E2;
+    color: #EF4444;
+    border: 1px solid #EF4444;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 16px;
+    transition: background-color 0.3s;
+}
+
+.ty-btn-cancel:hover {
+    background-color: #EF4444;
+    color: #fff;
 }
