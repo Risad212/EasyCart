@@ -1,32 +1,55 @@
 <?php
 
-
-if (! function_exists('baseUrl')) {
-    function baseUrl()
+if (!function_exists('baseUrl')) {
+    /**
+     * Get the base URL of the application.
+     *
+     * @return string
+     */
+    function baseUrl(): string
     {
-        // get protocol
-        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
-
-        // get domain address
-        $host = $_SERVER['HTTP_HOST'];
-
-        // get get project adress after domain address
+        $protocol  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+        $host      = $_SERVER['HTTP_HOST'];
         $scriptDir = dirname($_SERVER['SCRIPT_NAME']);
-
-        return rtrim($protocol .  "://" . $host . $scriptDir);
+        return rtrim($protocol . "://" . $host . $scriptDir);
     }
 }
 
-
-if (! function_exists('view')) {
-    function view(string $name, array $data)
+if (!function_exists('view')) {
+    /**
+     * Load and render a view file.
+     *
+     * @param string $name View file name
+     * @param array  $data Data to pass to the view
+     * @return void
+     */
+    function view(string $name, array $data): void
     {
-        $path = __DIR__ . "/src/Views/$name.php";
+        $path = BASE_PATH . "/src/Views/$name.php";
 
         if (file_exists($path)) {
+            extract($data);
             require $path;
         } else {
-            echo 'view not found';
+            echo 'View not found: ' . $name;
         }
     }
+}
+
+if(!function_exists('redirect')){
+  /**
+   * Redirect to the pat
+   * 
+   * @param string $path
+   * @return void
+   */
+   function redirect(string $path): void{
+      if (filter_var($path, FILTER_VALIDATE_URL)) {
+          $redirectUrl = $path;
+      }else {
+          $redirectUrl = BASE_URL . '/' . ltrim($path, '/'); 
+     }
+      header('Location: ' . $redirectUrl);
+      exit;
+   }
 }

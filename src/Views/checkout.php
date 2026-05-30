@@ -29,7 +29,7 @@ $_SESSION['checkout'] = [
 
 <head>
     <meta charset="UTF-8">
-    <title>Checkout - SwiftCart</title>
+    <title>Checkout - EasyCart</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
 </head>
 

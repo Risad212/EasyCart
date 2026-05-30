@@ -6,10 +6,18 @@ use Closure;
 
 class Routes
 {
-    private static $routes = [];
-    private static $instance = null;
+    /** @var array<string, array<string, Closure>> */
+    private static array $routes = [];
 
-    public static function getInstance()
+    /** @var static|null */
+    private static ?Routes $instance = null;
+
+    /**
+     * Get singleton instance of Routes.
+     *
+     * @return static
+     */
+    public static function getInstance(): static
     {
         if (self::$instance === null) {
             self::$instance = new self();
@@ -18,23 +26,41 @@ class Routes
         return self::$instance;
     }
 
-    public static function get(string $path, Closure $callback)
+    /**
+     * Register a GET route.
+     *
+     * @param string  $path     Route path
+     * @param Closure $callback Route handler
+     * @return void
+     */
+    public static function get(string $path, Closure $callback): void
     {
         self::$routes['GET'][$path] = $callback;
     }
 
-    public static function post(string $path, Closure $callback)
+    /**
+     * Register a POST route.
+     *
+     * @param string  $path     Route path
+     * @param Closure $callback Route handler
+     * @return void
+     */
+    public static function post(string $path, Closure $callback): void
     {
         self::$routes['POST'][$path] = $callback;
     }
 
-    public function dispatch()
+    /**
+     * Dispatch the current request to the matching route.
+     *
+     * @return void
+     */
+    public function dispatch(): void
     {
-        $method = $_SERVER['REQUEST_METHOD'];
+        $method   = $_SERVER['REQUEST_METHOD'];
+        $uri      = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-        $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-
-        // 🔥 FIX: remove project folder dynamically (no hardcode issue later)
+        // Remove project folder from URI dynamically
         $basePath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
         $basePath = rtrim($basePath, '/');
 
@@ -42,13 +68,11 @@ class Routes
             $uri = substr($uri, strlen($basePath));
         }
 
-        $path = '/' . trim($uri, '/');
-
+        $path    = '/' . trim($uri, '/');
         $request = $this->getRequest();
 
         if (isset(self::$routes[$method][$path])) {
             $callback = self::$routes[$method][$path];
-
             $callback($request);
             exit;
         }
@@ -58,13 +82,16 @@ class Routes
         exit;
     }
 
-    private function getRequest()
+    /**
+     * Get request data based on HTTP method.
+     *
+     * @return array
+     */
+    private function getRequest(): array
     {
-        $method = $_SERVER['REQUEST_METHOD'];
-
-        return match ($method) {
-            'POST' => $_POST,
-            'GET' => $_GET,
+        return match ($_SERVER['REQUEST_METHOD']) {
+            'POST'  => $_POST,
+            'GET'   => $_GET,
             default => []
         };
     }
