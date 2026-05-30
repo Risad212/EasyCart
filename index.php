@@ -1,35 +1,57 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 
-require_once __DIR__ . '/vendor/autoload.php';
-require_once 'helper.php';
-require_once 'config.php';
+/*
+ * Query Builder
+ */
 
-use App\Routes;
-use App\Controller\PaymentController;
-use App\Controller\InputController;
+class QueryBuilder{
+  
+ protected $table;
+ protected $where = [];
 
-define('BASE_PATH', __DIR__);
-define('BASE_URL', baseUrl());
+ /*
+  * Set Table Name And Return
+  *
+  * @param string $table
+  * @return self
+  */
+ public function table( string $table ): self{
+    $this->table = $table;
+    return $this;
+ }
 
+ /*
+  * Add A WHERE Condition
+  *
+  * @param string $column
+  * @param mixed $value
+  * @return self
+  */
+  public function where(string $column, mixed $value): self {
+     $this->where[] = "{$column} = '{$value}' ";
+     return $this;
+  }
 
-Routes::get('/', function () {
-    return view('app', []);
-});
+  /**
+   * Get SQL Query
+   * 
+   * @return string
+   */
+   public function toSQL(): string {
+     $sql = "SELECT * FROM {$this->table}";
 
-Routes::get('/checkout', function () {
-    return view('checkout', []);
-});
+     if( ! empty( $this->where ) ){
+         $sql .= " WHERE " . implode(' AND ', $this->where);
+     }
+     return $sql;
+   }
 
+}
 
-Routes::post('/checkout', function () {
+$instance = new QueryBuilder();
 
-    $validInput = InputController::inputValidate($_POST);
+echo $instance
+    ->table('users')
+    ->where('name', 'John Doe')
+    ->toSQL();
 
-    PaymentController::createSession();
-});
-
-$routes = Routes::getInstance();
-$routes->dispatch();

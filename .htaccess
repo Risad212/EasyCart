@@ -1,8 +1,0 @@
-RewriteEngine On
-
-# Don't rewrite if the file/folder actually exists
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-
-# Send everything else to index.php
-RewriteRule ^(.*)$ index.php [L,QSA]
